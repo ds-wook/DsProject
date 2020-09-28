@@ -19,7 +19,7 @@ train = mem.merge(memnew, on=['time'], how='outer')
 for dataset in [memuse, page]:
     train = train.merge(dataset, on=['time'], how='outer')
 # %%
-kmeans = KMeans(n_clusters=3, init='k-means++', max_iter=300, random_state=0)
+kmeans = KMeans(n_clusters=2, init='k-means++', max_iter=300, random_state=0)
 kmeans.fit(train.iloc[:, 1:])
 # %%
 print(kmeans.labels_)
@@ -30,7 +30,6 @@ train.head()
 # %%
 train['cluster'].value_counts()
 # %%
-
 X, y = make_blobs(n_samples=200, n_features=2, centers=3,
                   cluster_std=0.8, random_state=0)
 print(X.shape, y.shape)
