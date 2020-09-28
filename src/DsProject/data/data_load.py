@@ -9,13 +9,18 @@ import pandas as pd
 - 파일을 합치는 함수를 만들어 호출
 - 27개의 csv 폴더를 만든 후 결측치 확인
 '''
+
+
 # %%
 def get_merged_csv(flist, **kwargs):
-    return pd.concat([pd.read_csv(f, **kwargs) for f in flist], ignore_index = True)
+    return pd.concat([pd.read_csv(f, **kwargs) for f in flist],
+                     ignore_index=True)
 
-path = input('Enter the your dataset path : ')
+
+path = '../../project_data'
 path_list = os.listdir(path)
 
 for p in path_list:
     fmask = os.path.join(path + "\\" + p, p + "_*.csv")
     globals()[p.lower()] = get_merged_csv(glob.glob(fmask))
+# %%
