@@ -199,3 +199,5 @@ for col in new_cols[1:-1]:
 fig, ax = plt.subplots(figsize=(15, 10))
 sns.heatmap(train.corr(), fmt='.2f', annot=True)
 plt.show()
+
+# %%
