@@ -32,7 +32,7 @@ def change_column_name(
     ]
     rename_cols = {c1: c2 for c1, c2 in zip(columns, new_cols)}
     train.rename(columns=rename_cols, inplace=True)
- 
+
     return train
 
 

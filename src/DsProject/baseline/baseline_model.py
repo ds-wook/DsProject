@@ -1,9 +1,16 @@
 from data.datasets import train_model
+from fea_eng import del_columns
+from fea_eng import change_column_name
+from fea_eng import time_split_df
+
 from sklearn.ensemble import IsolationForest
 
 train = train_model()
 train.fillna(0, inplace=True)
-print(train.columns)
+
+train = del_columns(train)
+train = change_column_name(train)
+train = time_split_df(train)
 
 clf = IsolationForest(n_estimators=50,
                       max_samples=50,
@@ -21,3 +28,4 @@ train['anomaly'] = pred
 
 outlier = train[train['anomaly'] == -1]
 print(train['anomaly'].value_counts())
+print(train['anomaly'].value_counts() / train['anomaly'].value_counts().sum())
