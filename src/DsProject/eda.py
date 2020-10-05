@@ -195,6 +195,10 @@ for col in new_cols[1:-1]:
 
     plt.title(col + ' about hour of weekend')
     plt.show()
+    results = ols(f'{col}~hour + isweekend', data=train).fit()
+    print(results.summary())
+    anova_table = sm.stats.anova_lm(results)
+    print(anova_table)
 # %%
 fig, ax = plt.subplots(figsize=(15, 10))
 sns.heatmap(train.corr(), fmt='.2f', annot=True)

@@ -21,7 +21,9 @@ train['pca_y'] = pca_transformed[:, 1]
 # %%
 fig, axes = plt.subplots(figsize=(12, 10))
 for i in range(kmeans.n_clusters):
-    sns.scatterplot(x='pca_x', y='pca_y', data=train[train['cluster'] == i], label=i)
+    sns.scatterplot(x='pca_x', y='pca_y',
+                    data=train[train['cluster'] == i], label=i)
+                    
 plt.xlabel('PCA 1')
 plt.ylabel('PCA 2')
 plt.legend()
@@ -30,4 +32,3 @@ plt.show()
 
 # %%
 train['cluster'].value_counts()
-# %%
