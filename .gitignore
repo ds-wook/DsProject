@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # folder ignore
-project_data/
+input/
