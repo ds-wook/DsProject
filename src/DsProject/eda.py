@@ -85,7 +85,7 @@ train.drop(['pgsin', 'pgsout', 'reclaims', 'scans', 'cycles'],
 
 train = train.rename(columns={'Real free(MB)': 'Real_free',
                               'Virtual free(MB)': 'Virtual_free'})
-train.head()
+train.head()    
 # %%
 columns = train.columns
 new_cols = [
