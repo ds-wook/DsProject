@@ -1,6 +1,5 @@
 from data.datasets import train_model
 from sklearn.ensemble import IsolationForest
-from sklearn.model_selection import train_test_split
 
 train = train_model()
 train.fillna(0, inplace=True)
