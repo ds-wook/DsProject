@@ -7,8 +7,8 @@ from imblearn.over_sampling import SMOTE
 
 if __name__ == '__main__':
     train = anomaly_train(train)
-    X_features = train.iloc[:, 1:-1]
-    y_target = train.iloc[:, -1]
+    X_features = train.drop(['time', 'anomaly'], axis=1)
+    y_target = train['anomaly']
 
     X_train, X_test, y_train, y_test = \
         train_test_split(X_features,
@@ -20,8 +20,10 @@ if __name__ == '__main__':
     smote = SMOTE(random_state=2020)
     X_train, y_train = smote.fit_sample(X_train, y_train)
 
+    print('XGBoost learning!')
     xgb_pred, xgb_pred_proba = xgb_model(X_train, X_test, y_train, y_test)
     get_clf_eval(y_test, xgb_pred, xgb_pred_proba)
 
+    print(f'\n LightGBM learning')
     lgbm_pred, lgbm_pred_proba = lgbm_model(X_train, X_test, y_train, y_test)
     get_clf_eval(y_test, lgbm_pred, lgbm_pred_proba)

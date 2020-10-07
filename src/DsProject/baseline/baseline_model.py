@@ -5,6 +5,8 @@ from lightgbm import LGBMClassifier
 import numpy as np
 import pandas as pd
 from typing import Tuple
+import warnings
+warnings.filterwarnings('ignore')
 
 
 def dt_model(
@@ -41,10 +43,7 @@ def xgb_model(
             n_jobs=-1,
             max_depth=7,
             n_estimators=1000,
-            learning_rate=0.02,
-            num_leaves=32,
-            silent=-1,
-            verbose=-1)
+            learning_rate=0.02)
 
     xgb.fit(X_train, y_train, eval_set=[(X_train, y_train), (X_test, y_test)],
             verbose=100, early_stopping_rounds=100)
