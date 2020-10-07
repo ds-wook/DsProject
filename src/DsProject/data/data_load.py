@@ -15,7 +15,7 @@ def get_merged_csv(flist: List, **kwargs) -> pd.DataFrame:
                      ignore_index=True)
 
 
-path = '../../../input'
+path = '../../input'
 path_list = os.listdir(path)
 
 for p in path_list:
