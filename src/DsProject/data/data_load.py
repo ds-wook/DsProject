@@ -15,9 +15,9 @@ def get_merged_csv(flist: List, **kwargs) -> pd.DataFrame:
                      ignore_index=True)
 
 
-path = '../../input'
+path = r'/home/leewook/workspace_python/DsProject/input'
 path_list = os.listdir(path)
 
 for p in path_list:
-    fmask = os.path.join(path + "\\" + p, p + "_*.csv")
+    fmask = os.path.join(path + "/" + p, p + "_*.csv")
     globals()[p.lower()] = get_merged_csv(glob.glob(fmask))
