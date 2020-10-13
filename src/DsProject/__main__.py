@@ -14,7 +14,7 @@ if __name__ == '__main__':
         train_test_split(X_features,
                          y_target,
                          random_state=2020,
-                         test_size=0.3)
+                         test_size=0.2)
 
     # smote 기법을 활용한 over sampling
     smote = SMOTE(random_state=2020)
