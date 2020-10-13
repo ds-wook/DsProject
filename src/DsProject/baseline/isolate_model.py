@@ -1,6 +1,6 @@
 from data.datasets import train_model
-# from baseline.fea_eng import del_columns
-# from baseline.fea_eng import change_column_name
+from baseline.fea_eng import del_columns
+from baseline.fea_eng import change_column_name
 from baseline.fea_eng import time_split_df
 import pandas as pd
 from sklearn.ensemble import IsolationForest
@@ -8,8 +8,8 @@ from sklearn.ensemble import IsolationForest
 train = train_model()
 train.fillna(0, inplace=True)
 
-# train = del_columns(train)
-# train = change_column_name(train)
+train = del_columns(train)
+train = change_column_name(train)
 train = time_split_df(train)
 
 

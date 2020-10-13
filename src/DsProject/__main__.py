@@ -7,6 +7,7 @@ from imblearn.over_sampling import SMOTE
 
 if __name__ == '__main__':
     train = anomaly_train(train)
+
     X_features = train.drop(['time', 'anomaly'], axis=1)
     y_target = train['anomaly']
 
