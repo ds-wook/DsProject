@@ -1,4 +1,6 @@
 # %%
+
+
 from data.data_load import mem, memnew, memuse
 from data.data_load import page  # 데이터 로드
 
@@ -11,7 +13,11 @@ from statsmodels.formula.api import ols  # ols model
 import warnings
 warnings.filterwarnings('ignore')
 
+
+
 # %% [markdown]
+
+
 '''
 # 문제가 될 수 있는 가능성.
 ```
@@ -26,19 +32,33 @@ warnings.filterwarnings('ignore')
 8.   CPU, MEMORY는 사용량이 높은데 점유율이 높은 process가 없을 때는 ? process가 많이 뜬거임.
 ```
 '''
+
+
 # %%
+
+
 mem.rename(columns={'Memory pcordb02': 'time'}, inplace=True)
 memnew.rename(columns={'Memory New pcordb02': 'time'}, inplace=True)
 memuse.rename(columns={'Memory Use pcordb02': 'time'}, inplace=True)
 page.rename(columns={'Paging pcordb02': 'time'}, inplace=True)
+
+
 # %%
+
+
 train = mem.merge(memnew, on=['time'], how='outer')
 for dataset in [memuse, page]:
     train = train.merge(dataset, on=['time'], how='outer')
+
+
 # %%
+
+
 train['time'] = train['time'].apply(pd.to_datetime)
 train['week'] = train['time'].apply(lambda x: x.weekofyear)
 train['week'] = train['week'].apply(lambda x: 0 if x == 52 else x)
+
+
 # %% [markdown]
 '''
 # feature 내용
@@ -73,6 +93,8 @@ train['week'] = train['week'].apply(lambda x: 0 if x == 52 else x)
 ```
 '''
 # %%
+
+
 del_features = [
     'Real Free %', 'Virtual free %', 'Real total(MB)',
     'Virtual total(MB)', '%minperm', 'minfree',
@@ -85,8 +107,12 @@ train.drop(['pgsin', 'pgsout', 'reclaims', 'scans', 'cycles'],
 
 train = train.rename(columns={'Real free(MB)': 'Real_free',
                               'Virtual free(MB)': 'Virtual_free'})
-train.head()    
+train.head()
+
+
 # %%
+
+
 columns = train.columns
 new_cols = [
     'time', 'Real_free', 'Virtual_free',
@@ -97,7 +123,11 @@ new_cols = [
 rename_cols = {c1: c2 for c1, c2 in zip(columns, new_cols)}
 train.rename(columns=rename_cols, inplace=True)
 train.head()
+
+
 # %%
+
+
 train_grouped = train.groupby('week', as_index=False)
 for col in new_cols[1:-1]:
     f, ax = plt.subplots(figsize=(20, 8))
@@ -109,6 +139,8 @@ for col in new_cols[1:-1]:
     print(results.summary())
     anova_table = sm.stats.anova_lm(results)
     print(anova_table)
+
+
 # %%
 train['dayofweek'] = train['time'].apply(lambda x: x.dayofweek)
 # %%
@@ -204,4 +236,41 @@ fig, ax = plt.subplots(figsize=(15, 10))
 sns.heatmap(train.corr(), fmt='.2f', annot=True)
 plt.show()
 
+# %%
+
+
+from sklearn.ensemble import IsolationForest
+if_clf = IsolationForest(n_estimators=50,
+                          max_samples=50,
+                          contamination=0.004,
+                          max_features=1.0,
+                          bootstrap=False,
+                          n_jobs=-1,
+                          random_state=2020,
+                          verbose=0)
+
+if_clf.fit(train.iloc[:, 1:])
+feature_importance = pd.DataFrame()
+feature_importance['feature'] = train.iloc[:, 1:].columns
+feature_importance.head()
+# %%
+train['anomaly'] = if_clf.predict(train.iloc[:, 1:])
+train['anomaly'] = train['anomaly'].replace(-1, 0)
+train['anomaly'].value_counts()
+# %%
+from lightgbm import LGBMClassifier
+lgbm_clf = LGBMClassifier(
+    n_estimators=1000,
+    learning_rate=0.02,
+    num_leaves=32,
+    max_depth=12)
+lgbm_clf.fit(train.iloc[:, 1:-1], train['anomaly'])
+feature_importance['importance'] = lgbm_clf.feature_importances_
+feature_importance = feature_importance.sort_values(by='importance', ascending=False)
+feature_importance.head()
+# %%
+plt.figure(figsize=(20, 12))
+plt.title('Isolate Forest by LightGBM')
+sns.barplot(x='importance', y='feature', data=feature_importance)
+plt.show()
 # %%
