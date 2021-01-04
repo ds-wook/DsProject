@@ -13,20 +13,21 @@ train = change_column_name(train)
 train = time_split_df(train)
 
 
-def anomaly_train(
-        train: pd.DataFrame) -> pd.DataFrame:
-    clf = IsolationForest(n_estimators=50,
-                          max_samples=50,
-                          contamination=0.004,
-                          max_features=1.0,
-                          bootstrap=False,
-                          n_jobs=-1,
-                          random_state=2020,
-                          verbose=0)
+def anomaly_train(train: pd.DataFrame) -> pd.DataFrame:
+    clf = IsolationForest(
+        n_estimators=50,
+        max_samples=50,
+        contamination=0.004,
+        max_features=1.0,
+        bootstrap=False,
+        n_jobs=-1,
+        random_state=2020,
+        verbose=0,
+    )
 
     clf.fit(train.iloc[:, 1:-1])
     pred = clf.predict(train.iloc[:, 1:-1])
-    train['anomaly'] = pred
-    train['anomaly'] = train['anomaly'].replace(-1, 0)
+    train["anomaly"] = pred
+    train["anomaly"] = train["anomaly"].replace(-1, 0)
 
     return train
