@@ -10,5 +10,5 @@
         "--line-length",
         "88"
     ],
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": true
 }

@@ -1,4 +1,6 @@
 # %%
+
+
 from data.data_load import mem, memnew, memuse
 from data.data_load import page  # 데이터 로드
 
@@ -74,6 +76,8 @@ train["week"] = train["week"].apply(lambda x: 0 if x == 52 else x)
 ```
 """
 # %%
+
+
 del_features = [
     "Real Free %",
     "Virtual free %",
@@ -94,6 +98,8 @@ train = train.rename(
 )
 train.head()
 # %%
+
+
 columns = train.columns
 new_cols = [
     "time",
@@ -116,6 +122,8 @@ new_cols = [
 rename_cols = {c1: c2 for c1, c2 in zip(columns, new_cols)}
 train.rename(columns=rename_cols, inplace=True)
 train.head()
+
+
 # %%
 train_grouped = train.groupby("week", as_index=False)
 for col in new_cols[1:-1]:
@@ -128,6 +136,8 @@ for col in new_cols[1:-1]:
     print(results.summary())
     anova_table = sm.stats.anova_lm(results)
     print(anova_table)
+
+
 # %%
 train["dayofweek"] = train["time"].apply(lambda x: x.dayofweek)
 # %%
@@ -242,3 +252,26 @@ sns.heatmap(train.corr(), fmt=".2f", annot=True)
 plt.show()
 
 # %%
+
+
+from sklearn.ensemble import IsolationForest
+
+if_clf = IsolationForest(
+    n_estimators=50,
+    max_samples=50,
+    contamination=0.004,
+    max_features=1.0,
+    bootstrap=False,
+    n_jobs=-1,
+    random_state=2020,
+    verbose=0,
+)
+
+if_clf.fit(train.iloc[:, 1:])
+feature_importance = pd.DataFrame()
+feature_importance["feature"] = train.iloc[:, 1:].columns
+feature_importance.head()
+
+train["anomaly"] = if_clf.predict(train.iloc[:, 1:])
+train["anomaly"] = train["anomaly"].replace(-1, 0)
+train["anomaly"].value_counts()

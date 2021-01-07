@@ -18,5 +18,5 @@ path = r"/home/leewook/python_workspace/DsProject/input"
 path_list = os.listdir(path)
 
 for p in path_list:
-    fmask = os.path.join(path + "/" + p, p + "_*.csv")
+    fmask = os.path.join(path + p, p + "_*.csv")
     globals()[p.lower()] = get_merged_csv(glob.glob(fmask))
