@@ -6,13 +6,14 @@ import pandas as pd
 import numpy as np
 import seaborn as sns  # 데이터 시각화
 import matplotlib.pyplot as plt  # 기본 시각화
-import statsmodels.api as sm   # 가설검정
+import statsmodels.api as sm  # 가설검정
 from statsmodels.formula.api import ols  # ols model
 import warnings
-warnings.filterwarnings('ignore')
+
+warnings.filterwarnings("ignore")
 
 # %% [markdown]
-'''
+"""
 # 문제가 될 수 있는 가능성.
 ```
 1.   특정 프로세스가 CPU를 많이 차지해서 문제
@@ -25,22 +26,22 @@ warnings.filterwarnings('ignore')
 7.   평소보다 많이 썻네? 어떤놈이 많이 썻는지 보기 위해서 process를 봄.
 8.   CPU, MEMORY는 사용량이 높은데 점유율이 높은 process가 없을 때는 ? process가 많이 뜬거임.
 ```
-'''
+"""
 # %%
-mem.rename(columns={'Memory pcordb02': 'time'}, inplace=True)
-memnew.rename(columns={'Memory New pcordb02': 'time'}, inplace=True)
-memuse.rename(columns={'Memory Use pcordb02': 'time'}, inplace=True)
-page.rename(columns={'Paging pcordb02': 'time'}, inplace=True)
+mem.rename(columns={"Memory pcordb02": "time"}, inplace=True)
+memnew.rename(columns={"Memory New pcordb02": "time"}, inplace=True)
+memuse.rename(columns={"Memory Use pcordb02": "time"}, inplace=True)
+page.rename(columns={"Paging pcordb02": "time"}, inplace=True)
 # %%
-train = mem.merge(memnew, on=['time'], how='outer')
+train = mem.merge(memnew, on=["time"], how="outer")
 for dataset in [memuse, page]:
-    train = train.merge(dataset, on=['time'], how='outer')
+    train = train.merge(dataset, on=["time"], how="outer")
 # %%
-train['time'] = train['time'].apply(pd.to_datetime)
-train['week'] = train['time'].apply(lambda x: x.weekofyear)
-train['week'] = train['week'].apply(lambda x: 0 if x == 52 else x)
+train["time"] = train["time"].apply(pd.to_datetime)
+train["week"] = train["time"].apply(lambda x: x.weekofyear)
+train["week"] = train["week"].apply(lambda x: 0 if x == 52 else x)
 # %% [markdown]
-'''
+"""
 # feature 내용
 ```
 1. Real Free % : 사용 가능한 총 RAM에 대한 사용 가능한 실제 RAM의 백분율
@@ -71,137 +72,173 @@ train['week'] = train['week'].apply(lambda x: 0 if x == 52 else x)
 22. pgin(page in) :	초당 페이지 인 작업 수
 23. pgout(page out) :	초당 페이지 아웃 작업 수
 ```
-'''
+"""
 # %%
 del_features = [
-    'Real Free %', 'Virtual free %', 'Real total(MB)',
-    'Virtual total(MB)', '%minperm', 'minfree',
-    'maxfree', '%maxclient', ' lruable pages',
+    "Real Free %",
+    "Virtual free %",
+    "Real total(MB)",
+    "Virtual total(MB)",
+    "%minperm",
+    "minfree",
+    "maxfree",
+    "%maxclient",
+    " lruable pages",
 ]
 train.drop(del_features, axis=1, inplace=True)
 
-train.drop(['pgsin', 'pgsout', 'reclaims', 'scans', 'cycles'],
-           axis=1, inplace=True)
+train.drop(["pgsin", "pgsout", "reclaims", "scans", "cycles"], axis=1, inplace=True)
 
-train = train.rename(columns={'Real free(MB)': 'Real_free',
-                              'Virtual free(MB)': 'Virtual_free'})
-train.head()    
+train = train.rename(
+    columns={"Real free(MB)": "Real_free", "Virtual free(MB)": "Virtual_free"}
+)
+train.head()
 # %%
 columns = train.columns
 new_cols = [
-    'time', 'Real_free', 'Virtual_free',
-    'Process', 'FScache', 'System', 'Free',
-    'Pinned', 'User', 'numperm', 'maxperm',
-    'numclient', 'faults', 'pgin', 'pgout', 'week'
+    "time",
+    "Real_free",
+    "Virtual_free",
+    "Process",
+    "FScache",
+    "System",
+    "Free",
+    "Pinned",
+    "User",
+    "numperm",
+    "maxperm",
+    "numclient",
+    "faults",
+    "pgin",
+    "pgout",
+    "week",
 ]
 rename_cols = {c1: c2 for c1, c2 in zip(columns, new_cols)}
 train.rename(columns=rename_cols, inplace=True)
 train.head()
 # %%
-train_grouped = train.groupby('week', as_index=False)
+train_grouped = train.groupby("week", as_index=False)
 for col in new_cols[1:-1]:
     f, ax = plt.subplots(figsize=(20, 8))
-    sns.boxplot(x='week', y=col, data=train, ax=ax)
-    sns.pointplot(x='week', y=col, data=train_grouped[col].mean())
-    plt.title(col + ' about week(box)')
+    sns.boxplot(x="week", y=col, data=train, ax=ax)
+    sns.pointplot(x="week", y=col, data=train_grouped[col].mean())
+    plt.title(col + " about week(box)")
     plt.show()
-    results = ols(f'{col}~week', data=train).fit()
+    results = ols(f"{col}~week", data=train).fit()
     print(results.summary())
     anova_table = sm.stats.anova_lm(results)
     print(anova_table)
 # %%
-train['dayofweek'] = train['time'].apply(lambda x: x.dayofweek)
+train["dayofweek"] = train["time"].apply(lambda x: x.dayofweek)
 # %%
-train_grouped = train.groupby('dayofweek', as_index=False)
+train_grouped = train.groupby("dayofweek", as_index=False)
 for col in new_cols[1:-1]:
     f, ax = plt.subplots(figsize=(20, 8))
-    sns.boxplot(x='dayofweek', y=col, data=train, ax=ax)
-    sns.pointplot(x='dayofweek', y=col, data=train_grouped[col].mean())
-    plt.title(col + ' about weekday')
-    plt.xticks(np.arange(0, 7), labels=['Mon', 'Tue', 'Wen',
-                                        'Thr', 'Fri', 'Sat', 'Sun'])
+    sns.boxplot(x="dayofweek", y=col, data=train, ax=ax)
+    sns.pointplot(x="dayofweek", y=col, data=train_grouped[col].mean())
+    plt.title(col + " about weekday")
+    plt.xticks(
+        np.arange(0, 7), labels=["Mon", "Tue", "Wen", "Thr", "Fri", "Sat", "Sun"]
+    )
     plt.show()
-    results = ols(f'{col}~week', data=train).fit()
+    results = ols(f"{col}~week", data=train).fit()
     print(results.summary())
     anova_table = sm.stats.anova_lm(results)
     print(anova_table)
 # %%
-train['hour'] = train['time'].apply(lambda x: x.hour)
+train["hour"] = train["time"].apply(lambda x: x.hour)
 # %%
 for col in new_cols[1:-1]:
     f, ax = plt.subplots(figsize=(20, 8))
-    sns.pointplot(x='hour', y=col, data=train, ax=ax)
-    plt.title(col + ' about hour')
+    sns.pointplot(x="hour", y=col, data=train, ax=ax)
+    plt.title(col + " about hour")
     plt.show()
 # %%
-train['day'] = train['time'].apply(lambda x: x.day)
+train["day"] = train["time"].apply(lambda x: x.day)
 # %%
 for col in new_cols[1:-1]:
     f, ax = plt.subplots(figsize=(20, 8))
-    sns.pointplot(x='day', y=col, data=train, ax=ax)
-    plt.title(col + ' about day')
+    sns.pointplot(x="day", y=col, data=train, ax=ax)
+    plt.title(col + " about day")
     plt.show()
 # %%
-train['hour_of_day'] = train['time'].apply(lambda x: f'{x.dayofweek}-{x.hour}')
+train["hour_of_day"] = train["time"].apply(lambda x: f"{x.dayofweek}-{x.hour}")
 # %%
 for col in new_cols[1:-1]:
     f, ax = plt.subplots(figsize=(32, 8))
-    sns.lineplot(x='hour_of_day', y=col, data=train, ax=ax)
-    plt.title(col + ' about hour of day')
+    sns.lineplot(x="hour_of_day", y=col, data=train, ax=ax)
+    plt.title(col + " about hour of day")
     plt.xticks(rotation=75)
     plt.show()
 # %%
 for col in new_cols[1:-1]:
     f, ax = plt.subplots(figsize=(20, 8))
-    sns.lineplot(x='hour', y=col, hue='dayofweek', data=train, ax=ax, ci=None)
-    plt.title(col + 'about hour of day')
+    sns.lineplot(x="hour", y=col, hue="dayofweek", data=train, ax=ax, ci=None)
+    plt.title(col + "about hour of day")
     plt.show()
 # %%
 for col in new_cols[1:-1]:
     f, ax = plt.subplots(figsize=(20, 8))
-    sns.boxplot(x='hour', y=col, hue='dayofweek', data=train, ax=ax)
-    plt.title(col + ' about hour of day')
+    sns.boxplot(x="hour", y=col, hue="dayofweek", data=train, ax=ax)
+    plt.title(col + " about hour of day")
     plt.show()
 # %%
-train['isweekend'] = train['dayofweek'].apply(lambda x: 1 if x in [5, 6]
-                                              else 0)
+train["isweekend"] = train["dayofweek"].apply(lambda x: 1 if x in [5, 6] else 0)
 # %%
-df = train[(train['week'] != 0) & (train['week'] != 5)]
-train_grouped = df.groupby(['week', 'isweekend'], as_index=False)
+df = train[(train["week"] != 0) & (train["week"] != 5)]
+train_grouped = df.groupby(["week", "isweekend"], as_index=False)
 for col in new_cols[1:-1]:
     f, ax = plt.subplots(figsize=(20, 8))
-    sns.boxplot(x='week', y=col, hue='isweekend', data=df,
-                palette=sns.xkcd_palette(['sky blue', 'pink']), ax=ax)
-    sns.pointplot(x='week', y=col, hue='isweekend', data=train_grouped.mean(),
-                  palette=sns.xkcd_palette(['sky blue', 'hot pink']), ax=ax)
-    plt.title(col + ' about week of weekend')
+    sns.boxplot(
+        x="week",
+        y=col,
+        hue="isweekend",
+        data=df,
+        palette=sns.xkcd_palette(["sky blue", "pink"]),
+        ax=ax,
+    )
+    sns.pointplot(
+        x="week",
+        y=col,
+        hue="isweekend",
+        data=train_grouped.mean(),
+        palette=sns.xkcd_palette(["sky blue", "hot pink"]),
+        ax=ax,
+    )
+    plt.title(col + " about week of weekend")
     plt.show()
-    results = ols(f'{col}~week + isweekend', data=train).fit()
+    results = ols(f"{col}~week + isweekend", data=train).fit()
     print(results.summary())
     anova_table = sm.stats.anova_lm(results)
     print(anova_table)
 
 # %%
-grouped = train.groupby(['hour', 'isweekend'])
+grouped = train.groupby(["hour", "isweekend"])
 for col in new_cols[1:-1]:
     f, ax = plt.subplots(figsize=(20, 8))
 
-    sns.boxplot(x='hour', y=col, hue='isweekend',
-                palette=sns.xkcd_palette(['pastel blue', 'pastel red']),
-                data=train, ax=ax)
+    sns.boxplot(
+        x="hour",
+        y=col,
+        hue="isweekend",
+        palette=sns.xkcd_palette(["pastel blue", "pastel red"]),
+        data=train,
+        ax=ax,
+    )
 
-    sns.pointplot(x='hour', y=col, hue='isweekend',
-                  data=grouped[col].mean().reset_index(), ax=ax)
+    sns.pointplot(
+        x="hour", y=col, hue="isweekend", data=grouped[col].mean().reset_index(), ax=ax
+    )
 
-    plt.title(col + ' about hour of weekend')
+    plt.title(col + " about hour of weekend")
     plt.show()
-    results = ols(f'{col}~hour + isweekend', data=train).fit()
+    results = ols(f"{col}~hour + isweekend", data=train).fit()
     print(results.summary())
     anova_table = sm.stats.anova_lm(results)
     print(anova_table)
 # %%
 fig, ax = plt.subplots(figsize=(15, 10))
-sns.heatmap(train.corr(), fmt='.2f', annot=True)
+sns.heatmap(train.corr(), fmt=".2f", annot=True)
 plt.show()
 
 # %%
